@@ -3,21 +3,32 @@ import CardProduct from '../components/Fragments/CardProduct'
 import Button from '../components/Elements/Buttons';
 import Counter from '../components/Fragments/Counter';
 import { getProducts } from '../../services/product.services';
+import { getUsername } from '../../services/auth.services';
 
-const email = localStorage.getItem("email");
+const token = localStorage.getItem("token");
 
 const ProductsPage = () => {
     // Membuat state cart untuk menyimpan data keranjang belanja dengan nilai awal array kosong
     const [cart, setCart] = useState([]);
     // Membuat state totalPrice untuk menyimpan total harga dengan nilai awal 0
     const [totalPrice, setTotalPrice] = useState(0);
-    const [products, setProducts] = useState([])
+    const [products, setProducts] = useState([]);
+    const [username, setUsername] = useState("");
 
     // useEffect yang dijalankan sekali saat komponen dimount
     // Mengambil data cart dari localStorage dan mengubah dari string JSON menjadi array
     // Jika tidak ada data di localStorage, nilai default array kosong
     useEffect(() => {
         setCart(JSON.parse(localStorage.getItem("cart")) || []);
+    }, [])
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            setUsername(getUsername(token));
+        } else {
+            window.location.href = "/login";
+        }
     }, [])
 
     useEffect(() => {
@@ -88,7 +99,7 @@ const ProductsPage = () => {
     return (
         <>
             <div className='flex justify-end h-20 bg-blue-600 text-white items-center px-10'>
-                {email}
+                {username}
                 <Button classname="ml-5 bg-black" onClick={handleLogout}>Logout</Button>
             </div>
             <div className='flex justify-center py-5'>
@@ -121,7 +132,7 @@ const ProductsPage = () => {
                                 );
                                 return (
                                     <tr key={item.id}>
-                                        <td>{product.title.substring(0,10)}...</td>
+                                        <td>{product.title.substring(0, 10)}...</td>
                                         <td>$ {product.price.toLocaleString('id-ID', { styles: 'currency', currency: 'USD' })}</td>
                                         <td>{item.qty}</td>
                                         <td>$ {(item.qty * product.price).toLocaleString('id-ID', { styles: 'currency', currency: 'USD' })}</td>
