@@ -2,30 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import CardProduct from '../components/Fragments/CardProduct'
 import Button from '../components/Elements/Buttons';
 import Counter from '../components/Fragments/Counter';
-
-const products = [
-    {
-        id: 1,
-        name: "Sepatu Baru",
-        price: 1000000,
-        image: "/images/shoes-1.jpg",
-        description: `Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nam consectetur quidem pariatur enim velit facere ut vitae veritatis, nesciunt exercitationem autem, sapiente illum eos dolorem, placeat quod officia deleniti aut.`
-    },
-    {
-        id: 2,
-        name: "Sepatu Lama",
-        price: 750000,
-        image: "/images/shoes-3.jpg",
-        description: `Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nam consectetur quidem pariatur enim velit facere ut vitae veritatis, nesciunt exercitationem autem, sapiente illum eos dolorem, placeat quod officia deleniti aut.`
-    },
-    {
-        id: 3,
-        name: "Sepatu Baru",
-        price: 1250000,
-        image: "/images/shoes-4.jpg",
-        description: `Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nam consectetur quidem pariatur enim velit facere ut vitae veritatis, nesciunt exercitationem autem, sapiente illum eos dolorem, placeat quod officia deleniti aut.`
-    }
-]
+import { getProducts } from '../../services/product.services';
 
 const email = localStorage.getItem("email");
 
@@ -34,6 +11,7 @@ const ProductsPage = () => {
     const [cart, setCart] = useState([]);
     // Membuat state totalPrice untuk menyimpan total harga dengan nilai awal 0
     const [totalPrice, setTotalPrice] = useState(0);
+    const [products, setProducts] = useState([])
 
     // useEffect yang dijalankan sekali saat komponen dimount
     // Mengambil data cart dari localStorage dan mengubah dari string JSON menjadi array
@@ -42,9 +20,15 @@ const ProductsPage = () => {
         setCart(JSON.parse(localStorage.getItem("cart")) || []);
     }, [])
 
+    useEffect(() => {
+        getProducts((data) => {
+            setProducts(data)
+        });
+    }, [])
+
     // useEffect yang dijalankan setiap kali cart berubah
     useEffect(() => {
-        if (cart.length > 0) {
+        if (products.length > 0 && cart.length > 0) {
             // Menghitung total harga dengan reduce
             // acc adalah akumulator, item adalah setiap item di cart
             const sum = cart.reduce((acc, item) => {
@@ -58,7 +42,7 @@ const ProductsPage = () => {
             // Simpan cart ke localStorage dalam bentuk string JSON
             localStorage.setItem("cart", JSON.stringify(cart));
         }
-    }, [cart])
+    }, [cart, products])
 
     // Fungsi untuk handle logout
     const handleLogout = () => {
@@ -109,10 +93,10 @@ const ProductsPage = () => {
             </div>
             <div className='flex justify-center py-5'>
                 <div className="w-4/6 flex flex-wrap">
-                    {products.map((product) => (
+                    {products.length > 0 && products.map((product) => (
                         <CardProduct key={product.id}>
                             <CardProduct.Header image={product.image} />
-                            <CardProduct.Body title={product.name}>
+                            <CardProduct.Body title={product.title}>
                                 {product.description}
                             </CardProduct.Body>
                             <CardProduct.Footer price={product.price} id={product.id} handleAddToCart={handleAddToCart} />
@@ -131,16 +115,16 @@ const ProductsPage = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {cart.map((item) => {
+                            {products.length > 0 && cart.map((item) => {
                                 const product = products.find(
                                     (product) => product.id === item.id
                                 );
                                 return (
                                     <tr key={item.id}>
-                                        <td>{product.name}</td>
-                                        <td>Rp {product.price.toLocaleString('id-ID', { styles: 'currency', currency: 'IDR' })}</td>
+                                        <td>{product.title.substring(0,10)}...</td>
+                                        <td>$ {product.price.toLocaleString('id-ID', { styles: 'currency', currency: 'USD' })}</td>
                                         <td>{item.qty}</td>
-                                        <td>Rp {(item.qty * product.price).toLocaleString('id-ID', { styles: 'currency', currency: 'IDR' })}</td>
+                                        <td>$ {(item.qty * product.price).toLocaleString('id-ID', { styles: 'currency', currency: 'USD' })}</td>
                                     </tr>
                                 );
                             })}
@@ -148,7 +132,7 @@ const ProductsPage = () => {
                                 <td colSpan={3}><b>Total Price</b></td>
                                 <td>
                                     <b>
-                                        Rp {totalPrice.toLocaleString('id-ID', { styles: 'currency', currency: 'IDR' })}
+                                        $ {totalPrice.toLocaleString('id-ID', { styles: 'currency', currency: 'USD' })}
                                     </b>
                                 </td>
                             </tr>
