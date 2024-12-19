@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import CardProduct from '../components/Fragments/CardProduct'
 import Button from '../components/Elements/Buttons';
 import Counter from '../components/Fragments/Counter';
@@ -30,25 +30,55 @@ const products = [
 const email = localStorage.getItem("email");
 
 const ProductsPage = () => {
-    const [cart, setCart] = useState([
-        {
-            id: 1,
-            qty: 1,
-        }
-    ]);
+    // Membuat state cart untuk menyimpan data keranjang belanja dengan nilai awal array kosong
+    const [cart, setCart] = useState([]);
+    // Membuat state totalPrice untuk menyimpan total harga dengan nilai awal 0
+    const [totalPrice, setTotalPrice] = useState(0);
 
+    // useEffect yang dijalankan sekali saat komponen dimount
+    // Mengambil data cart dari localStorage dan mengubah dari string JSON menjadi array
+    // Jika tidak ada data di localStorage, nilai default array kosong
+    useEffect(() => {
+        setCart(JSON.parse(localStorage.getItem("cart")) || []);
+    }, [])
+
+    // useEffect yang dijalankan setiap kali cart berubah
+    useEffect(() => {
+        if (cart.length > 0) {
+            // Menghitung total harga dengan reduce
+            // acc adalah akumulator, item adalah setiap item di cart
+            const sum = cart.reduce((acc, item) => {
+                // Mencari data produk berdasarkan id
+                const product = products.find((product) => product.id === item.id);
+                // Menambahkan harga produk dikali quantity ke akumulator
+                return acc + product.price * item.qty;
+            }, 0);
+            // Set total price dengan hasil perhitungan
+            setTotalPrice(sum);
+            // Simpan cart ke localStorage dalam bentuk string JSON
+            localStorage.setItem("cart", JSON.stringify(cart));
+        }
+    }, [cart])
+
+    // Fungsi untuk handle logout
     const handleLogout = () => {
+        // Menghapus data email dan password dari localStorage
         localStorage.removeItem("email");
         localStorage.removeItem("password");
+        // Redirect ke halaman login
         window.location.href = "/login";
     }
 
+    // Fungsi untuk menambahkan produk ke cart
     const handleAddToCart = (id) => {
+        // Cek apakah produk sudah ada di cart
         if (cart.find(item => item.id === id)) {
+            // Jika ada, update quantity +1
             setCart(
                 cart.map(item => item.id === id ? { ...item, qty: item.qty + 1 } : item)
             )
         } else {
+            // Jika belum ada, tambahkan produk baru dengan qty 1
             setCart([...cart, { id, qty: 1 }]);
         }
     }
@@ -96,14 +126,22 @@ const ProductsPage = () => {
                                     </tr>
                                 );
                             })}
+                            <tr>
+                                <td colSpan={3}>Total Price</td>
+                                <td>
+                                    <b>
+                                        Rp {totalPrice.toLocaleString('id-ID', { styles: 'currency', currency: 'IDR' })}
+                                    </b>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <div className="mt-5 flex justify-center mb-5">
+            {/* <div className="mt-5 flex justify-center mb-5">
                 <Counter></Counter>
-            </div>
+            </div> */}
         </>
     )
 }
