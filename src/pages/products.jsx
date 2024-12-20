@@ -4,6 +4,7 @@ import Button from '../components/Elements/Buttons';
 import Counter from '../components/Fragments/Counter';
 import { getProducts } from '../../services/product.services';
 import { getUsername } from '../../services/auth.services';
+import { useLogin } from '../hooks/useLogin';
 
 const token = localStorage.getItem("token");
 
@@ -13,22 +14,13 @@ const ProductsPage = () => {
     // Membuat state totalPrice untuk menyimpan total harga dengan nilai awal 0
     const [totalPrice, setTotalPrice] = useState(0);
     const [products, setProducts] = useState([]);
-    const [username, setUsername] = useState("");
+    const username = useLogin();
 
     // useEffect yang dijalankan sekali saat komponen dimount
     // Mengambil data cart dari localStorage dan mengubah dari string JSON menjadi array
     // Jika tidak ada data di localStorage, nilai default array kosong
     useEffect(() => {
         setCart(JSON.parse(localStorage.getItem("cart")) || []);
-    }, [])
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            setUsername(getUsername(token));
-        } else {
-            window.location.href = "/login";
-        }
     }, [])
 
     useEffect(() => {
@@ -58,7 +50,7 @@ const ProductsPage = () => {
     // Fungsi untuk handle logout
     const handleLogout = () => {
         // Menghapus data email dan password dari localStorage
-        localStorage.removeItem("email");
+        localStorage.removeItem("token");
         localStorage.removeItem("password");
         // Redirect ke halaman login
         window.location.href = "/login";
